@@ -31,15 +31,15 @@ void rainbow(uint8_t wait) {
   }
 }
 
-void rainbowNew(uint16_t width, uint16_t centre){
+void rainbowNew(uint16_t width, uint16_t centre,uint16_t shift){
   uint16_t i;
 
   double red, green, blue, freq;
   freq = 0.3;
   for(i=0; i<strip.numPixels();i++){
-    red = sin(freq*i+0)*width+centre;
-    green = sin(freq*i+2)*width+centre;
-    blue = sin(freq*i+4)*width+centre;
+    red = sin(freq*i+0+shift*freq)*width+centre;
+    green = sin(freq*i+2+shift*freq)*width+centre;
+    blue = sin(freq*i+4+shift*freq)*width+centre;
     strip.setColor(i, (int)green,(int)red,(int)blue);
   }
   strip.show();
@@ -114,10 +114,11 @@ void callback(char* topic, byte* payload, unsigned int length) {
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(p);
     if (root.success()){
-        uint16_t centre = root["ACCX"];
-        uint16_t width = root["ACCY"];
+        uint16_t centre = root["centre"];
+        uint16_t width = root["width"];
+        uint16_t shift = root["shift"];
         RGB.color(100, 110, 0);
-        rainbowNew(centre,width);
+        rainbowNew(centre,width,shift);
     }
     else if (!strcmp(p, "RED")){
         RGB.color(255, 0, 0);
@@ -134,7 +135,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     else if (!strcmp(p, "RAINBOWNEW")){
       RGB.color(0, 0, 0);
-      rainbowNew(128,127);
+      rainbowNew(128,127,0);
     }
 
     else if (!strcmp(p, "RAINBOW"))
