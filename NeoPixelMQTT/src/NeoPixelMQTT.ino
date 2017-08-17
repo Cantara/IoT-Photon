@@ -2,6 +2,8 @@
 #include "MQTT.h"
 #include "Particle.h"
 #include "neopixel.h"
+#include "math.h"
+#include <ArduinoJson.h>
 
 SYSTEM_MODE(AUTOMATIC);
 
@@ -29,7 +31,21 @@ void rainbow(uint8_t wait) {
   }
 }
 
-void red(){
+void rainbowNew(uint16_t width, uint16_t centre){
+  uint16_t i;
+
+  double red, green, blue, freq;
+  freq = 0.3;
+  for(i=0; i<strip.numPixels();i++){
+    red = sin(freq*i+0)*width+centre;
+    green = sin(freq*i+2)*width+centre;
+    blue = sin(freq*i+4)*width+centre;
+    strip.setColor(i, (int)green,(int)red,(int)blue);
+  }
+  strip.show();
+}
+
+void setStripRed(){
   uint16_t i;
   for (i=0; i<strip.numPixels();i++){
     strip.setColor(i,0,255,0);
@@ -37,7 +53,7 @@ void red(){
   }
 }
 
-void green(){
+void setStripGreen(){
   uint16_t i;
   for (i=0; i<strip.numPixels();i++){
     strip.setColor(i,255,0,0);
@@ -45,15 +61,13 @@ void green(){
   }
 }
 
-void blue(){
+void setStripBlue(){
   uint16_t i;
   for (i=0; i<strip.numPixels();i++){
     strip.setColor(i,0,0,255);
     strip.show();
   }
 }
-
-
 
 
 // Input a value 0 to 255 to get a color value.
@@ -70,6 +84,10 @@ uint32_t Wheel(byte WheelPos) {
   }
 }
 
+uint32_t WheelNew(byte WheelPos){
+
+}
+
 
 void callback(char* topic, byte* payload, unsigned int length);
 
@@ -80,11 +98,12 @@ void callback(char* topic, byte* payload, unsigned int length);
  * want to use domain name,
  * MQTT client("www.sample.com", 1883, callback);
  **/
-MQTT client("ec2-54-93-235-215.eu-central-1.compute.amazonaws.com", 1883, callback);
+MQTT client("mqttdev.cantara.no", 1883, callback);
 
 // for QoS2 MQTTPUBREL message.
 // this messageid maybe have store list or array structure.
 uint16_t qos2messageid = 0;
+
 
 // recieve message
 void callback(char* topic, byte* payload, unsigned int length) {
@@ -92,23 +111,34 @@ void callback(char* topic, byte* payload, unsigned int length) {
     memcpy(p, payload, length);
     p[length] = NULL;
     client.publish("device/status", "hello world QOS1", MQTT::QOS0);
-
-    if (!strcmp(p, "RED")){
+    StaticJsonBuffer<200> jsonBuffer;
+    JsonObject& root = jsonBuffer.parseObject(p);
+    if (root.success()){
+        uint16_t centre = root["ACCX"];
+        uint16_t width = root["ACCY"];
+        RGB.color(100, 110, 0);
+        rainbowNew(centre,width);
+    }
+    else if (!strcmp(p, "RED")){
         RGB.color(255, 0, 0);
-        red();
-        }
+        setStripRed();
+    }
     else if (!strcmp(p, "GREEN")){
       RGB.color(0, 255, 0);
-      green();
+      setStripGreen();
     }
 
     else if (!strcmp(p, "BLUE")){
       RGB.color(0, 0, 255);
-      blue();
+      setStripBlue();
+    }
+    else if (!strcmp(p, "RAINBOWNEW")){
+      RGB.color(0, 0, 0);
+      rainbowNew(128,127);
     }
 
     else if (!strcmp(p, "RAINBOW"))
-        strip.begin();
+        rainbow(10);
     else
         RGB.color(255, 255, 255);
 
