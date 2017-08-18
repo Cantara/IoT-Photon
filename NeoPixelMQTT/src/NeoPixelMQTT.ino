@@ -14,6 +14,9 @@ SYSTEM_MODE(AUTOMATIC);
 
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 
+
+
+
 // Prototypes for local build, ok to leave in for Build IDE
 void rainbow(uint8_t wait);
 uint32_t Wheel(byte WheelPos);
@@ -31,11 +34,12 @@ void rainbow(uint8_t wait) {
   }
 }
 
-void rainbowNew(uint16_t width, uint16_t centre,uint16_t shift){
+void rainbowNew(uint16_t width, uint16_t centre, uint16_t shift, uint16_t freqT){
   uint16_t i;
 
   double red, green, blue, freq;
-  freq = 0.3;
+  freq = (double)freqT*6/1000;
+  Spark.publish("freqT",10);
   for(i=0; i<strip.numPixels();i++){
     red = sin(freq*i+0+shift*freq)*width+centre;
     green = sin(freq*i+2+shift*freq)*width+centre;
@@ -117,8 +121,9 @@ void callback(char* topic, byte* payload, unsigned int length) {
         uint16_t centre = root["centre"];
         uint16_t width = root["width"];
         uint16_t shift = root["shift"];
+        uint16_t freqT = root["freqT"];
         RGB.color(100, 110, 0);
-        rainbowNew(centre,width,shift);
+        rainbowNew(centre,width,shift,freqT);
     }
     else if (!strcmp(p, "RED")){
         RGB.color(255, 0, 0);
@@ -135,7 +140,7 @@ void callback(char* topic, byte* payload, unsigned int length) {
     }
     else if (!strcmp(p, "RAINBOWNEW")){
       RGB.color(0, 0, 0);
-      rainbowNew(128,127,0);
+      rainbowNew(128,127,0,3);
     }
 
     else if (!strcmp(p, "RAINBOW"))
