@@ -171,7 +171,7 @@ void setup() {
     RGB.control(true);
 
     // connect to the server
-    client.connect("sparkclient");
+    client.connect("capra_iot_jz_5");
 
     // add qos callback. If don't add qoscallback, ACK message from MQTT server is ignored.
     client.addQosCallback(qoscallback);
@@ -193,7 +193,7 @@ void setup() {
         // save QoS2 message id as global parameter.
         qos2messageid = messageid;
 
-        client.subscribe("device/1");
+        client.subscribe("device/all");
     }
 }
 
