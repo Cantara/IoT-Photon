@@ -33,3 +33,6 @@
 
 # Mac Trash
 .DS_Store
+
+# Device Specific Properties file
+NeoPixelMQTT/src/NeoPixelMQTT.h

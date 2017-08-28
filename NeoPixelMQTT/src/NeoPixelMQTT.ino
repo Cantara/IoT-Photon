@@ -4,13 +4,11 @@
 #include "neopixel.h"
 #include "math.h"
 #include <ArduinoJson.h>
+#include "NeoPixelMQTT.h"
 
 SYSTEM_MODE(AUTOMATIC);
 
-// IMPORTANT: Set pixel COUNT, PIN and TYPE
-#define PIXEL_PIN D3
-#define PIXEL_COUNT 30
-#define PIXEL_TYPE SK6812RGBW
+
 
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
 
@@ -171,7 +169,7 @@ void setup() {
     RGB.control(true);
 
     // connect to the server
-    client.connect("capra_iot_jz_5");
+    client.connect(CLIENT_ID);
 
     // add qos callback. If don't add qoscallback, ACK message from MQTT server is ignored.
     client.addQosCallback(qoscallback);

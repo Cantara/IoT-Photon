@@ -1,3 +1,6 @@
+To compile this project create a file called /src/NeoPixelMQTT.h based on the file /src/example_NeoPixelMQTT.h and give the device a unique CLIENT_ID
+
+
 # MyProject
 
 A Particle project named MyProject
