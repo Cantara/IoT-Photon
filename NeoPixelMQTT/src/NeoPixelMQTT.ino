@@ -7,7 +7,7 @@
 #include "NeoPixelMQTT.h"
 
 SYSTEM_MODE(AUTOMATIC);
-
+unsigned long nextHeartBeat = millis()+1000;
 
 
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
@@ -173,29 +173,51 @@ void setup() {
 
     // add qos callback. If don't add qoscallback, ACK message from MQTT server is ignored.
     client.addQosCallback(qoscallback);
+    char inboundTopic[50];
+    sprintf(inboundTopic, "device/%s",CLIENT_ID);
+    char statusTopic[50];
+    sprintf(statusTopic, "status/%s",CLIENT_ID);
+
+
 
     // publish/subscribe
     if (client.isConnected()) {
         // it can use messageid parameter at 4.
         uint16_t messageid;
-        client.publish("device/1", "hello world QOS1", MQTT::QOS1, &messageid);
+        client.publish(statusTopic, "hello world QOS1", MQTT::QOS1, &messageid);
         Serial.println(messageid);
 
         // if 4th parameter don't set or NULL, application can not check the message id to the ACK message from MQTT server.
-        client.publish("device/1", "hello world QOS1(message is NULL)", MQTT::QOS1);
+        client.publish(statusTopic, "hello world QOS1(message is NULL)", MQTT::QOS1);
 
         // QOS=2
-        client.publish("device/1", "hello world QOS2", MQTT::QOS2, &messageid);
+        client.publish(statusTopic, "hello world QOS2", MQTT::QOS2, &messageid);
         Serial.println(messageid);
 
         // save QoS2 message id as global parameter.
         qos2messageid = messageid;
 
-        client.subscribe("device/all");
+        client.subscribe(inboundTopic);
     }
 }
+
+void heartBeat(){
+  if (client.isConnected()) {
+    char heartBeatTopic[50];
+    char statusMessage[50];
+    sprintf(heartBeatTopic, "heartbeat/%s",CLIENT_ID);
+    sprintf(statusMessage, "%s is Alive!",CLIENT_ID);
+    client.publish(heartBeatTopic, statusMessage, MQTT::QOS0);
+    nextHeartBeat = millis()+1000;
+    }
+}
+
 
 void loop() {
     if (client.isConnected())
         client.loop();
+    unsigned long now = millis();
+    if (now >= nextHeartBeat){
+      heartBeat();
+    }
 }
