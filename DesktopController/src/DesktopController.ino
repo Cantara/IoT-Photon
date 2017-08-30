@@ -3,13 +3,13 @@
 
 // This #include statement was automatically added by the Particle IDE.
 #include <ArduinoJson.h>
-
+#include "Particle.h"
 
 
 
 // IMPORTANT: Set pixel COUNT, PIN and TYPE
-#define UP_PIN D3
-#define DOWN_PIN D6
+#define UP_PIN D6
+#define DOWN_PIN D3
 
 bool GO = LOW;
 bool STOP = HIGH;
@@ -31,19 +31,17 @@ void callback(char* topic, byte* payload, unsigned int length);
 MQTT client("mqttdev.cantara.no", 1883, callback);
 
 void moveUp(uint16_t timeMs){
-    stopMotion();
-    client.publish("device/status", "DesktopController: moveUp");
-  moving = 1;
-  stopMovingAt = (long)(millis() + timeMs);
-  digitalWrite(UP_PIN,STOP);
-}
-
-void moveDown(uint16_t timeMs){
-    stopMotion();
-    client.publish("device/status", "DesktopController: moveDown");
+  client.publish("device/status", "DesktopController: moveUp");
   moving = 1;
   stopMovingAt = (long)(millis() + timeMs);
   digitalWrite(UP_PIN,GO);
+}
+
+void moveDown(uint16_t timeMs){
+  client.publish("device/status", "DesktopController: moveDown");
+  moving = 1;
+  stopMovingAt = (long)(millis() + timeMs);
+  digitalWrite(DOWN_PIN,GO);
 }
 
 void stopMotion() {
@@ -53,7 +51,6 @@ void stopMotion() {
       client.publish("device/status", "DesktopController: stopMotion");
   }
   moving = 0;
-
 }
 
 
@@ -72,8 +69,8 @@ void callback(char* topic, byte* payload, unsigned int length) {
     StaticJsonBuffer<200> jsonBuffer;
     JsonObject& root = jsonBuffer.parseObject(p);
     if (root.success()){
-          const char* command = root["command"];
-          String str(command);
+        const char* command = root["command"];
+        String str(command);
         uint16_t timeMs = root["timeMs"];
         if (str == "UP"){
             moveUp(timeMs);
@@ -84,19 +81,21 @@ void callback(char* topic, byte* payload, unsigned int length) {
         if (str == "STOP"){
             stopMotion();
         }
-
     }
     else if (!strcmp(p, "UP")){
         client.publish("device/status", "DesktopController: UP");
         moveUp(1000);
+        RGB.color(255, 0, 0);
     }
     else if (!strcmp(p, "DOWN")){
         client.publish("device/status", "DesktopController: DOWN");
         moveDown(1000);
+        RGB.color(0, 255, 0);
     }
     else if (!strcmp(p, "STOP")){
         client.publish("device/status", "DesktopController: STOP");
         stopMotion();
+        RGB.color(0, 0, 255);
     }
 
     delay(1);
@@ -115,8 +114,11 @@ void qoscallback(unsigned int messageid) {
 }
 
 void setup() {
-
+    pinMode (UP_PIN, OUTPUT);
+    pinMode (DOWN_PIN, OUTPUT);
     Serial.begin(9600);
+    RGB.control(true);
+    RGB.color(255, 255, 255);
 
 
     // connect to the server
@@ -153,7 +155,6 @@ void loop() {
   if (moving >= 0) {
     unsigned long now = millis();
 	  if (now >= stopMovingAt) {
-
       stopMotion();
     }
   }

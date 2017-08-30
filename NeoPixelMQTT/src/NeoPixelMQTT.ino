@@ -174,9 +174,9 @@ void setup() {
     // add qos callback. If don't add qoscallback, ACK message from MQTT server is ignored.
     client.addQosCallback(qoscallback);
     char inboundTopic[50];
-    sprintf(inboundTopic, "device/%s",CLIENT_ID);
+    sprintf(inboundTopic, "/device/%s",CLIENT_ID);
     char statusTopic[50];
-    sprintf(statusTopic, "status/%s",CLIENT_ID);
+    sprintf(statusTopic, "/status/%s",CLIENT_ID);
 
 
 
@@ -205,7 +205,7 @@ void heartBeat(){
   if (client.isConnected()) {
     char heartBeatTopic[50];
     char statusMessage[50];
-    sprintf(heartBeatTopic, "heartbeat/%s",CLIENT_ID);
+    sprintf(heartBeatTopic, "/heartbeat/%s",CLIENT_ID);
     sprintf(statusMessage, "%s is Alive!",CLIENT_ID);
     client.publish(heartBeatTopic, statusMessage, MQTT::QOS0);
     nextHeartBeat = millis()+1000;
