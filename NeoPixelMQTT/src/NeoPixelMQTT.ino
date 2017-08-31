@@ -167,6 +167,7 @@ void setup() {
     strip.show(); // Initialize all pixels to 'off'
     Serial.begin(9600);
     RGB.control(true);
+    RGB.color(0, 255, 0);
 
     // connect to the server
     client.connect(CLIENT_ID);
